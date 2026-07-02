@@ -188,21 +188,29 @@ exports._deprecatedProperties = {
  * Setting some things before 'deviceready' event has fired.
  */
 channel.onCordovaReady.subscribe(function () {
-    channel.onCordovaInfoReady.subscribe(function () {
-        console.log("LocalNotification: onCordovaInfoReady");
+    if (channel.onCordovaInfoReady) {
+        channel.onCordovaInfoReady.subscribe(function () {
+            console.log("LocalNotification: onCordovaInfoReady");
 
-        // Set defaults
-        // To be compatible with Android 7 and a not updated WebView,
-        // Object.assign is used instead of a spread ... in object literals
+            exports._defaults = Object.assign(
+                {},
+                exports._commonOptions,
+                (cordova.platformId === 'android' ? exports._androidSpecificOptions : exports._iOSSpecificOptions)
+            );
+
+            exports._setLaunchDetails();
+        });
+    } else {
+        console.log("LocalNotification: onCordovaInfoReady (skipped)");
+
         exports._defaults = Object.assign(
             {},
             exports._commonOptions,
-            // Platform specific defaults
-            (device.platform == 'Android' ? exports._androidSpecificOptions : exports._iOSSpecificOptions)
+            (cordova.platformId === 'android' ? exports._androidSpecificOptions : exports._iOSSpecificOptions)
         );
 
         exports._setLaunchDetails();
-    });
+    }
 });
 
 // Called after 'deviceready' event
